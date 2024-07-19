@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Video</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .col-md-8 {
+            flex: 1 0 70%;
+            /* Adjust the width of the left column */
+        }
+
+        .col-md-4 {
+            flex: 1 0 30%;
+            /* Adjust the width of the right column */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col-md-8:nth-child(2) {
+            display: flex;
+        }
+
+        .spinner-border {
+            display: none;
+            width: 3rem;
+            height: 3rem;
+            margin: auto;
+        }
+
+        #processing-text {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #video-container {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .video-info {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        /* Adjust checkboxes and list items */
+        .form-check-input {
+            margin-right: 10px;
+            /* Add spacing between checkbox and label */
+        }
+
+        #selected-items-list {
+            list-style: none;
+            /* Remove default list style */
+            padding: 0;
+            /* Remove default padding */
+        }
+
+        #selected-items-list li {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 50%;
+            /* Make the width 50% of the parent container */
+            box-sizing: border-box;
+            /* Include padding and border in width calculation */
+        }
+
+        /* Adjust column widths for smaller screens */
+        @media (max-width: 992px) {
+            .col-md-6 {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Left 70% for video upload form -->
+            <div class="col-md-8">
+                <h1 class="text-center mb-4">Video Yükle</h1>
+                <form id="upload-form" class="border p-4 bg-light shadow-sm rounded">
+                    <div class="form-group">
+                        <label for="file">Dosya Seç</label>
+                        <input type="file" name="file" id="file" class="form-control-file" accept="video/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Yükle</button>
+                </form>
+            </div>
+            <!-- Right 30% for uploaded video and information -->
+            <div class="col-md-4">
+                <div id="processing-text" class="mt-3">
+                    <h5>Video İşleniyor...</h5>
+                </div>
+                <div class="spinner-border text-primary mt-3" id="loading-spinner" role="status">
+                    <span class="sr-only">Yükleniyor...</span>
+                </div>
+                <div id="video-container" class="mt-3">
+                    <h5 class="text-center mb-3">Yüklenen Video:</h5>
+                    <video id="uploaded-video" controls width="100%"></video>
+                    <div class="video-info mt-3">
+                        <p id="filename">Dosya: </p>
+                        <p id="filesize">Boyut: </p>
+                        <p id="resolution">Bi veri..: </p>
+                    </div>
+                </div>
+            </div>
+            <!-- section for selecting items -->
+            <div class="col-md-8">
+                <h1 class="text-center mb-4">Ekipmanları Seçiniz</h1>
+                <form id="equipment-form" class="border p-4 bg-light shadow-sm rounded">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Eldiven" id="checkbox-eldiven">
+                        <label class="form-check-label" for="checkbox-eldiven">
+                            Eldiven
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Gözlük" id="checkbox-gozluk">
+                        <label class="form-check-label" for="checkbox-gozluk">
+                            Gözlük
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Ayakkabı" id="checkbox-ayakkabi">
+                        <label class="form-check-label" for="checkbox-ayakkabi">
+                            Ayakkabı
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Kontrol_Kalemi"
+                            id="checkbox-kontrol-kalemi">
+                        <label class="form-check-label" for="checkbox-kontrol-kalemi">
+                            Kontrol Kalemi
+                        </label>
+                    </div>
+                    <!-- Add more checkboxes -->
+
+                    <button type="button" class="btn btn-primary btn-block mt-3" onclick="addItem()">Ekipmanları
+                        Ekle</button>
+                </form>
+            </div>
+
+            <!-- displaying selected items -->
+            <div class="col-md-8">
+                <h1 class="text-center mb-4">Ekipman Kontrol</h1>
+                <form id="control-form" class="border p-4 bg-light shadow-sm rounded">
+                    <ul id="selected-items-list">
+                        <!-- Selected items will be added here dynamically -->
+                    </ul>
+                    <button type="button" class="btn btn-success btn-block mt-3" onclick="analysisItems()">Analiz
+                        Et</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // JavaScript code in your HTML file or separate script file
+
+        function addItem() {
+            var selectedItems = [];
+
+            // Iterate over checkboxes to collect selected items
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function (checkbox) {
+                selectedItems.push(checkbox.value);
+            });
+
+            // Clear previous items in the list
+            var selectedItemsList = document.getElementById('selected-items-list');
+            selectedItemsList.innerHTML = '';
+
+            // Add selected items to the list
+            selectedItems.forEach(function (item) {
+                var li = document.createElement('li');
+                li.textContent = item;
+                selectedItemsList.appendChild(li);
+            });
+        }
+
+        function analysisItems() {
+            var selectedItems = [];
+
+            // Iterate over checkboxes to collect selected items
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function (checkbox) {
+                selectedItems.push(checkbox.value);
+            });
+
+            fetch('http://localhost:5000/analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ selectedItems: selectedItems }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    var analysisResultList = document.getElementById('analysis-result-list');
+                    analysisResultList.innerHTML = ''; // Clear previous analysis results
+
+                    // Iterate over the analysis results and create list items
+                    for (var key in data.analysis_result) {
+                        if (data.analysis_result.hasOwnProperty(key)) {
+                            var li = document.createElement('li');
+                            li.textContent = `${key}: ${data.analysis_result[key]}`;
+                            analysisResultList.appendChild(li);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during analysis.');
+                });
+        }
+
+
+
+        document.getElementById('upload-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('processing-text').style.display = 'block';
+
+            var formData = new FormData();
+            var fileField = document.getElementById('file');
+            var selectedItems = []; // Initialize an array for selected items
+
+            formData.append('file', fileField.files[0]);
+
+            // Iterate over checkboxes to collect selected items
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function (checkbox) {
+                selectedItems.push(checkbox.value);
+            });
+
+            formData.append('selectedItems', JSON.stringify(selectedItems)); // Convert to JSON string
+
+            fetch('http://localhost:5000/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        document.getElementById('loading-spinner').style.display = 'none';
+                        document.getElementById('processing-text').style.display = 'none';
+                        document.getElementById('video-container').style.display = 'block';
+                        document.getElementById('uploaded-video').src = 'http://localhost:5000' + data.video_path;
+                        document.getElementById('filename').innerText = 'Filename: ' + data.video_info.filename;
+                        document.getElementById('filesize').innerText = 'File Size: ' + data.video_info.size.toFixed(2) + ' MB';
+                        document.getElementById('resolution').innerText = 'Resolution: ' + data.video_info.resolution;
+
+                        // Show selected items section and populate the list
+                        var selectedItemsList = document.getElementById('selected-items-list');
+                        selectedItemsList.innerHTML = ''; // Clear previous items
+
+                        selectedItems.forEach(function (item) {
+                            var li = document.createElement('li');
+                            li.textContent = item;
+                            selectedItemsList.appendChild(li);
+                        });
+                    }
+                })
+
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while uploading the video.');
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('processing-text').style.display = 'none';
+                });
+        });
+    </script>
+</body>
+
+</html>
